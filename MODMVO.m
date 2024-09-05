@@ -1,0 +1,46 @@
+function  x = MVO(mu, Q)
+    
+    % Use this function to construct an example of a MVO portfolio.
+    %
+    % An example of an MVO implementation is given below. You can use this
+    % version of MVO if you like, but feel free to modify this code as much
+    % as you need to. You can also change the inputs and outputs to suit
+    % your needs. 
+    
+    % You may use quadprog, Gurobi, or any other optimizer you are familiar
+    % with. Just be sure to include comments in your code.
+
+    % *************** WRITE YOUR CODE HERE ***************
+    %----------------------------------------------------------------------
+    
+    % Find the total number of assets
+    n = size(Q,1); 
+    
+    % Set the target as the average expected return of all assets
+    targetRet = mean(mu);
+    
+    % Disallow short sales
+    lb = .01*ones(n,1); % need to change this but 
+    ub = ones(n,1);
+    y = optimvar('x',n,'Type','integer','LowerBound',0,'UpperBound',1);
+    l = 0.03;
+    u = .5;
+    %ones(n,1)*y<= 70; %limits number of assets to be <= 70
+    % Add the expected return constraint *-ve because we want mu^Tx>= target
+    % ret
+    A = [-1 .* mu';-1*eye(n);eye(n)];
+    b = [-1 * targetRet;-1*l*y;u*y];
+    f = -1*mu;
+    %constrain weights to sum to 1
+    Aeq = ones(1,n);
+    beq = 1;
+
+    % Set the quadprog options 
+    options = optimoptions( 'quadprog', 'TolFun', 1e-9, 'Display','off');
+    
+    % Optimal asset weights
+    x = quadprog( 2 * Q, f, A, b, Aeq, beq, [], [], [], options);
+    
+    %----------------------------------------------------------------------
+    
+end
